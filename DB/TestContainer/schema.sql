@@ -1,0 +1,2 @@
+CREATE DATABASE MagenicAutomation;
+GO
