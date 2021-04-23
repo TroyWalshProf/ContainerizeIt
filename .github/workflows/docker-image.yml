@@ -19,7 +19,7 @@ jobs:
         dotnet-version: 3.1.101
         
     - name: Build
-      run: dotnet build DB/BackendDB/BackendDB.csproj
+      run: dotnet build DB/BackendDB/BackendDB.csproj -c Release
     
     - uses: actions/checkout@v2
     - name: Build the Docker image
