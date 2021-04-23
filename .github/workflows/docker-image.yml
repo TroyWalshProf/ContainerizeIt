@@ -17,10 +17,11 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.101
-        
+
+    - uses: actions/checkout@v2
+
     - name: Build
       run: dotnet build DB/BackendDB/BackendDB.csproj -c Release
     
-    - uses: actions/checkout@v2
     - name: Build the Docker image
       run: docker-compose --file DB/TestContainer/docker-compose.yml  up -d
