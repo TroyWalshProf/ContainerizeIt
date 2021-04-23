@@ -1,0 +1,57 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+
+    - uses: actions/checkout@v2
+
+    - name: Build
+      run: dotnet build DB/BackendDB/BackendDB.csproj -c Release
+    
+    - name: Build the Docker image
+      run: docker-compose --file DB/TestContainer/docker-compose.yml  up -d
+      
+    - name: Setup DACPAC tooling
+      run: |
+        # Setup DACPAC tooling
+        sudo wget -progress=bar:force -q -O sqlpackage.zip https://go.microsoft.com/fwlink/?linkid=2113331 \
+            && unzip -qq sqlpackage.zip -d /opt/sqlpackage \
+            && chmod +x /opt/sqlpackage/sqlpackage \
+            && chown -R mssql /opt/sqlpackage \
+            && mkdir /tmp/db \
+            && chown -R mssql /tmp/db
+
+        sudo wget http://mirrors.kernel.org/ubuntu/pool/main/i/icu/libicu60_60.2-3ubuntu3_amd64.deb
+        sudo dpkg -i libicu60_60.2-3ubuntu3_amd64.deb
+
+        sudo wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl1.0/libssl1.0.0_1.0.2n-1ubuntu5.6_amd64.deb
+        sudo dpkg -i libssl1.0.0_1.0.2n-1ubuntu5.6_amd64.deb
+
+    - name: Apply DACPAC and load data
+      run: |
+        # Write your commands here
+        echo 'Applying DACPAC'
+        /opt/sqlpackage/sqlpackage /a:Publish /tsn:localhost  /tdn:MagenicAutomation /tu:sa /tp:magenicMAQS2  /sf:DB/BackendDB/bin/Release/netstandard2.0/BackendDB.dacpac     
+        echo 'Applied DACPAC'
+
+        echo 'Adding data'
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P magenicMAQS2 -d master -i DB/TestContainer/LoadTestData.sql
+        echo 'Added data'
+
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P magenicMAQS2 -d master -Q "SELECT TOP (1000) [ResultKey] ,[ResponseTimeKey] ,[StartTime] ,[Duration] FROM [MagenicAutomation].[dbo].[ResponseTimeResults]"
+
