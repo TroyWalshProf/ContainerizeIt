@@ -13,7 +13,8 @@ namespace WebServices.Contexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Address>().Table("Address");
+            modelBuilder.Entity<Person>().ToTable("Person");
+            modelBuilder.Entity<Address>().ToTable("Address");
         }
     }
 }

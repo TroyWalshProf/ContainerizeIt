@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebServices.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebServices
 {
@@ -23,7 +24,7 @@ namespace WebServices
 
             services.AddDbContext<PersonContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-
+            services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddControllersWithViews();
         }
 
